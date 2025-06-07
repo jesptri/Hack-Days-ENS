@@ -27,36 +27,38 @@
 
 <#
     .SYNOPSIS
-    Script PowerShell pour gérer les tâches de développement d'un projet Docker avec Django et Node.js.
-
+    PowerShell script to manage development tasks for a Docker project with Django and Node.js.
     .DESCRIPTION
-    Ce script permet de configurer l'environnement de développement, de gérer les migrations de base de données,
-    de créer des données de démonstration, de compiler les fichiers de traduction, d'installer et de construire les mails,
-    et de lancer les services backend et frontend via Docker Compose.
-
+    This script is designed to facilitate the development workflow by automating common tasks such as building Docker images,
+    running migrations, creating demo data, compiling translations, and managing frontend dependencies.
     .PARAMETER Bootstrap
-    Exécute une série de commandes pour initialiser l'environnement de développement, y compris la création de répertoires,
-    la construction des images Docker, les migrations de base de données, la création de données de démonstration,
-    la compilation des traductions, et l'installation des mails.
+    Execute the following tasks:
+    - Create media and static directories
+    - Create environment files
+    - Build Docker images for the app, yjs provider, and frontend
+    - Run database migrations
+    - Create demo data
+    - Compile backend translations
+    - Install and build mail templates
+    - Start all services (backend and frontend)
     .PARAMETER Demo
-    Réinitialise la base de données et crée des données de démonstration en utilisant la commande `create_demo` de Django.
+    Reset the database and create demo data using Django's `create_demo` command.
     .PARAMETER Run
-    Démarre tous les services (backend et frontend) en utilisant Docker Compose.
+    Start all services (backend and frontend) using Docker Compose.
     .PARAMETER Run-Backend
-    Démarre les services backend (celery, yjs provider, nginx) en utilisant Docker Compose.
+    Start the backend services (celery, yjs provider, nginx) using Docker Compose.
     .PARAMETER Superuser
-    Crée un superutilisateur Django.
+    Create a Django superuser.
     .PARAMETER ResetDb
-    Réinitialise la base de données en la vidant et en créant un superutilisateur.
+    Reset the database by flushing it and creating a superuser.
     .PARAMETER Frontend-Development-Install
-    Installe les dépendances du frontend en vérifiant si Node.js et Yarn sont installés, sinon les installe.
+    Install frontend dependencies by checking if Node.js and Yarn are installed, otherwise install them.
     .PARAMETER Frontend-Development-Deploy
-    Installe les dépendances du frontend et lance le serveur de développement.
+    Install frontend dependencies and start the development server.
     .PARAMETER Frontend-Development-Run
-    Lance le serveur de développement du frontend en utilisant Yarn.
+    Launch the frontend development server using Yarn.
     .PARAMETER Help
-    Affiche l'aide et la liste des commandes disponibles dans le script.
-
+    Display the help message and available commands in the script.
 #>
 
 # $BOLD := \033[1m
@@ -312,6 +314,7 @@ function ResetDb {
     docker compose run --rm app-dev python manage.py flush --no-input
     Superuser
 }
+
 $nodeUrl = "https://nodejs.org/dist/v20.11.1/node-v20.11.1-x64.msi"
 $installerPath = "$env:TEMP\node-lts.msi"
 $yarnDependenciesPath = "./src/frontend/apps/impress"
@@ -353,7 +356,7 @@ function Install-NodeJS {
     }
 }
 function Frontend-Development-Install {
-    # Si node déjà installé et npm disponible, on ne fait rien
+    # If node already installed, skip installation
     Write-Host "Checking if Node.js and npm are installed..."
     if (Get-Command node -ErrorAction SilentlyContinue) {
         Write-Host "Node.js already installed."
@@ -370,7 +373,7 @@ function Frontend-Development-Install {
     }
 }
 
-function Install-Frontend {
+function Install-Frontend-Dependencies {
     param (
         [string]$path = "$PSScriptRoot/$yarnDependenciesPath"
     )
@@ -400,17 +403,17 @@ function Run-Frontend {
         [string]$composeCommand = "docker-compose"
     )
 
-    # 1. Arrêt du conteneur frontend
+    # 1. Stopping the Frontend Docker container if it is running
     Write-Host "Stopping Frontend Docker container..."
     # & $composeCommand stop frontend
 
-    # 2. Vérifie si le dossier frontend existe
+    # 2. Check if the Frontend folder exists
     if (-not (Test-Path $frontendPath)) {
         Write-Host "The Frontend folder '$frontendPath' is not found."
         exit 1
     }
 
-    # 3. Lance `yarn dev` dans ce dossier
+    # 3. Launch Yarn Dev in Frontend folder
     Write-Host "Launching the Frontend in development mode..."
     Push-Location $frontendPath
     if (Get-Command yarn -ErrorAction SilentlyContinue) {
@@ -497,9 +500,9 @@ if ($args.Count -eq 0) {
             $action = $commands[$index].action
             if ($action -is [scriptblock]) {
                 $action.Invoke()
-                Write-Host "Fin de la commande : $($commands[$index].key)"
+                Write-Host "End of the command : $($commands[$index].key)"
             } else {
-                Write-Host "Erreur : la commande n'est pas exécutable."
+                Write-Host "Error: the command is not executable."
             }
         } else {
             Write-Host "Invalid choice. Please retry."
@@ -512,14 +515,14 @@ if ($args.Count -eq 0) {
     exit 0
 }
 
-# === Exécution d'une commande par argument ===
+# === Executing a command with an argument ===
 $matchedCommand = $commands | Where-Object { $_.key -eq $args[0] }
 if ($null -ne $matchedCommand -and $matchedCommand.Count -gt 0) {
     $action = $matchedCommand[0].action
     if ($action -is [scriptblock]) {
         & $action.Invoke()
     } else {
-        Write-Host "Erreur : la commande '$($args[0])' n'est pas exécutable."
+        Write-Host "Error: the command '$($args[0])' is not executable."
         exit 1
     }
 } else {
