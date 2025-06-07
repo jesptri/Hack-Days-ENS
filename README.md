@@ -1,3 +1,5 @@
+I participated in this hackathon because I’m always eager to learn, and I believe events like this provide an ideal environment for that. During the project setup, Windows users faced several issues installing the dependencies, the process was buggy and slow. To help with this, a teammate and I developed a PowerShell script to streamline and speed up the installation of the dependencies.
+
 <p align="center">
   <a href="https://github.com/suitenumerique/docs">
     <img alt="Docs" src="/docs/assets/banner-docs.png" width="100%" />
