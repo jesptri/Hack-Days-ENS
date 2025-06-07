@@ -92,10 +92,8 @@
 # ==============================================================================
 # RULES
 
-# Makefile.ps1 - Script PowerShell pour gérer les tâches de développement
+# Makefile.ps1 - PowerShell script to manage development tasks
 
-# TODO rajouter au niveau du script une gestion intelligente de podman ou de docker dans le cas où un seul des deux outils est présent
-# TODO traiter le problème des entrypoint (retours à la ligne Windows vs Linux)
 function Bootstrap {
     Data-Media
     Data-Static
